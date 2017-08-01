@@ -5078,7 +5078,8 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
 			.values_static =            VALUES_STATIC (NM_SETTING_BOND_SETTING_NAME,
 			                                           NM_SETTING_BRIDGE_SETTING_NAME,
-			                                           NM_SETTING_TEAM_SETTING_NAME),
+			                                           NM_SETTING_TEAM_SETTING_NAME,
+			                                           NM_SETTING_OPENVSWITCH_SETTING_NAME),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES,
@@ -7026,6 +7027,10 @@ nm_meta_setting_info_valid_parts_for_slave_type (const char *slave_type, const c
 	if (nm_streq (slave_type, NM_SETTING_TEAM_SETTING_NAME)) {
 		NM_SET_OUT (out_slave_name, "team-slave");
 		return valid_settings_slave_team;
+	}
+	if (nm_streq (slave_type, NM_SETTING_OPENVSWITCH_SETTING_NAME)) {
+		NM_SET_OUT (out_slave_name, "ovs-slave");
+		return NM_PTRARRAY_EMPTY (const NMMetaSettingValidPartItem *);
 	}
 	return NULL;
 }

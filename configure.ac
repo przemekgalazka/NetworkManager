@@ -836,6 +836,19 @@ else
 fi
 AM_CONDITIONAL(WITH_OFONO, test "${with_ofono}" = "yes")
 
+# OpenVSwitch integration
+AC_ARG_ENABLE(openvswitch, AS_HELP_STRING([--enable-openvswitch], [enable OpenVSwitch support]))
+if test "${enable_openvswitch}" != "no"; then
+	enable_openvswitch='yes'
+	if test "$have_jansson" = "no"; then
+		AC_MSG_ERROR(Jansson is required for openvswitch support)
+	fi
+	AC_DEFINE(WITH_OPENVSWITCH, 1, [Define if you have OpenVSwitch support])
+else
+	AC_DEFINE(WITH_OPENVSWITCH, 0, [Define if you have OpenVSwitch support])
+fi
+AM_CONDITIONAL(WITH_OPENVSWITCH, test "${enable_openvswitch}" = "yes")
+
 # DHCP client support
 AC_ARG_WITH([dhclient],
             AS_HELP_STRING([--with-dhclient=yes|no|path], [Enable dhclient 4.x support]))
@@ -1323,6 +1336,7 @@ echo "  modemmanager-1: $with_modem_manager_1"
 echo "  ofono: $with_ofono"
 echo "  concheck: $enable_concheck"
 echo "  libteamdctl: $enable_teamdctl"
+echo "  openvswitch: $enable_openvswitch"
 echo "  libnm-glib: $with_libnm_glib"
 echo "  nmcli: $build_nmcli"
 echo "  nmtui: $build_nmtui"

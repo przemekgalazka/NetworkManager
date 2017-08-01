@@ -1587,6 +1587,8 @@ nm_device_get_priority (NMDevice *self)
 		return 410;
 	case NM_DEVICE_TYPE_BRIDGE:
 		return 425;
+	case NM_DEVICE_TYPE_OPENVSWITCH:
+		return 430;
 	case NM_DEVICE_TYPE_TUN:
 		return 450;
 	case NM_DEVICE_TYPE_PPP:

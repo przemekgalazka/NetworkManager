@@ -2749,6 +2749,57 @@ check_local += check-local-devices-team
 endif
 
 ###############################################################################
+# src/devices/openvswitch
+###############################################################################
+
+if WITH_OPENVSWITCH
+
+if HAVE_SYSTEMD
+
+systemdnmunitdir = $(systemdsystemunitdir)/NetworkManager.service.d
+systemdnmunit_DATA = \
+	data/NetworkManager-openvswitch.conf
+
+endif
+
+core_plugins += src/devices/openvswitch/libnm-device-plugin-openvswitch.la
+
+src_devices_openvswitch_libnm_device_plugin_openvswitch_la_SOURCES = \
+	src/devices/openvswitch/nm-openvswitch-factory.c \
+	src/devices/openvswitch/nm-device-openvswitch.c \
+	src/devices/openvswitch/nm-device-openvswitch.h
+
+src_devices_openvswitch_libnm_device_plugin_openvswitch_la_CPPFLAGS = \
+	-I$(srcdir)/src \
+	-I$(builddir)/src \
+	-I$(srcdir)/shared \
+	-I$(builddir)/shared \
+	-I$(builddir)/libnm-core \
+	-I$(srcdir)/libnm-core \
+	\
+	-DG_LOG_DOMAIN=\""NetworkManager"\" \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
+	-DRUNSTATEDIR=\"$(runstatedir)\" \
+	\
+	$(JANSSON_CFLAGS) \
+	$(GLIB_CFLAGS)
+
+src_devices_openvswitch_libnm_device_plugin_openvswitch_la_LDFLAGS = \
+	-module -avoid-version \
+	-Wl,--version-script="$(srcdir)/linker-script-devices.ver"
+
+src_devices_openvswitch_libnm_device_plugin_openvswitch_la_LIBADD = \
+	introspection/libnmdbus.la \
+	$(JANSSON_LIBS) \
+	$(GLIB_LIBS)
+
+check-local-devices-openvswitch: src/devices/openvswitch/libnm-device-plugin-openvswitch.la
+	$(srcdir)/tools/check-exports.sh $(builddir)/src/devices/openvswitch/.libs/libnm-device-plugin-openvswitch.so "$(srcdir)/linker-script-devices.ver"
+	$(call check_so_symbols,$(builddir)/src/devices/openvswitch/.libs/libnm-device-plugin-openvswitch.so)
+
+endif
+
+###############################################################################
 # src/dnsmasq/tests
 ###############################################################################
 
