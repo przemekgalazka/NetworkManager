@@ -524,6 +524,8 @@ ovsdb_got_msg (NMOpenvswitchFactory *self, json_t *msg)
 	OvsdbMethodCall *call = NULL;
 	json_error_t json_error = { 0, };
 	json_t *params = NULL;
+	OvsdbMethodCallback callback;
+	gpointer user_data;
 
 	json_id = json_object_get (msg, "id");
 	if (json_is_number (json_id)) {
@@ -543,8 +545,10 @@ ovsdb_got_msg (NMOpenvswitchFactory *self, json_t *msg)
 		}
 
 		/* Cool, we found a corresponsing call. Finish it. */
-		call->callback (self, msg, NULL, call->user_data);
+		callback = call->callback;
+		user_data = call->user_data;
 		g_array_remove_index (priv->calls, 0);
+		callback (self, msg, NULL, user_data);
 
 		/* Now we're free to serialize and send the next command, if any. */
 		ovsdb_next_command (self);
@@ -702,6 +706,8 @@ ovsdb_disconnect (NMOpenvswitchFactory *self)
 {
 	NMOpenvswitchFactoryPrivate *priv = NM_OPENVSWITCH_FACTORY_GET_PRIVATE (self);
 	OvsdbMethodCall *call;
+	OvsdbMethodCallback callback;
+	gpointer user_data;
 	GError *error;
 
 	_LOGD ("disconnecting from ovsdb");
@@ -710,8 +716,11 @@ ovsdb_disconnect (NMOpenvswitchFactory *self)
 		error = NULL;
 		call = &g_array_index (priv->calls, OvsdbMethodCall, priv->calls->len - 1);
 		g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_CANCELLED, "Cancelled");
-		call->callback (self, NULL, error, call->user_data);
+
+		callback = call->callback;
+		user_data = call->user_data;
 		g_array_remove_index (priv->calls, priv->calls->len - 1);
+		callback (self, NULL, error, user_data);
 	}
 
 	g_string_truncate (priv->input, 0);
