@@ -19,15 +19,15 @@
 
 #include "nm-default.h"
 
+#include "nm-openvswitch-factory.h"
+
 #include <string.h>
 #include <jansson.h>
 #include <gmodule.h>
 #include <gio/gunixsocketaddress.h>
 
-#include "nm-openvswitch-factory.h"
 #include "nm-device-openvswitch.h"
 #include "platform/nm-platform.h"
-#include "nm-default.h"
 #include "nm-core-internal.h"
 
 /*****************************************************************************/
