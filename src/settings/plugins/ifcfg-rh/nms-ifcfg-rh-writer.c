@@ -48,6 +48,7 @@
 #include "nm-setting-team-port.h"
 #include "nm-utils.h"
 #include "nm-core-internal.h"
+#include "nm-core-utils.h"
 #include "NetworkManagerUtils.h"
 #include "nm-meta-setting.h"
 
@@ -1208,6 +1209,19 @@ write_vlan_setting (NMConnection *connection, shvarFile *ifcfg, gboolean *wired,
 	svSetValueStr (ifcfg, "TYPE", TYPE_VLAN);
 	svSetValueStr (ifcfg, "PHYSDEV", nm_setting_vlan_get_parent (s_vlan));
 	svSetValueInt64 (ifcfg, "VLAN_ID", nm_setting_vlan_get_id (s_vlan));
+	/*
+	 * Set the interface name for compatibility with initscripts,
+	 * but add a new variable to indicate the interface name is
+	 * not set in the NM connection.
+	 */
+	if (   !nm_connection_get_interface_name (connection)
+	    && nm_setting_vlan_get_parent (s_vlan)) {
+		tmp = nm_utils_new_vlan_name (nm_setting_vlan_get_parent (s_vlan),
+		                              nm_setting_vlan_get_id (s_vlan));
+		svSetValueStr (ifcfg, "DEVICE", tmp);
+		svSetValueStr (ifcfg, "NM_IGNORE_DEVICE", "yes");
+		g_free (tmp);
+	}
 
 	vlan_flags = nm_setting_vlan_get_flags (s_vlan);
 	svSetValueBoolean (ifcfg, "REORDER_HDR", NM_FLAGS_HAS (vlan_flags, NM_VLAN_FLAG_REORDER_HEADERS));
@@ -1672,7 +1686,9 @@ write_connection_setting (NMSettingConnection *s_con, shvarFile *ifcfg)
 	svSetValueStr (ifcfg, "NAME", nm_setting_connection_get_id (s_con));
 	svSetValueStr (ifcfg, "UUID", nm_setting_connection_get_uuid (s_con));
 	svSetValueStr (ifcfg, "STABLE_ID", nm_setting_connection_get_stable_id (s_con));
-	svSetValueStr (ifcfg, "DEVICE", nm_setting_connection_get_interface_name (s_con));
+	tmp = nm_setting_connection_get_interface_name (s_con);
+	if (tmp)
+		svSetValueStr (ifcfg, "DEVICE", tmp);
 	svSetValueBoolean (ifcfg, "ONBOOT", nm_setting_connection_get_autoconnect (s_con));
 
 	i_int = nm_setting_connection_get_autoconnect_priority (s_con);
@@ -2798,6 +2814,8 @@ write_connection (NMConnection *connection,
 
 		ifcfg = svCreateFile (ifcfg_name);
 	}
+
+	svUnsetValue (ifcfg, "DEVICE");
 
 	type = nm_setting_connection_get_connection_type (s_con);
 	if (!type) {

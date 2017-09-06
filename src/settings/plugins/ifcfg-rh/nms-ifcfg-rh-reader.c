@@ -153,7 +153,10 @@ make_connection_setting (const char *file,
 	              NULL);
 	g_free (uuid);
 
-	value = svGetValueStr_cp (ifcfg, "DEVICE");
+	if (svGetValueBoolean (ifcfg, "NM_IGNORE_DEVICE", FALSE))
+		value = NULL;
+	else
+		value = svGetValueStr_cp (ifcfg, "DEVICE");
 	if (value) {
 		GError *error = NULL;
 
@@ -4931,7 +4934,8 @@ make_vlan_setting (shvarFile *ifcfg,
 	}
 
 	/* Need DEVICE if we don't have a separate VLAN_ID property */
-	iface_name = svGetValueStr_cp (ifcfg, "DEVICE");
+	if (!svGetValueBoolean (ifcfg, "NM_IGNORE_DEVICE", FALSE))
+		iface_name = svGetValueStr_cp (ifcfg, "DEVICE");
 	if (!iface_name && vlan_id < 0) {
 		g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		                     "Missing DEVICE property; cannot determine VLAN ID.");
