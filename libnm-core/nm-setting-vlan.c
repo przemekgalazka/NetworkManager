@@ -877,7 +877,7 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	/* ---ifcfg-rh---
 	 * property: id
-	 * variable: VLAN_ID or DEVICE
+	 * variable: VLAN_ID or VID or DEVICE
 	 * description: VLAN identifier.
 	 * ---end---
 	 */

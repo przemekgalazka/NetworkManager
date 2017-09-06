@@ -4922,6 +4922,8 @@ make_vlan_setting (shvarFile *ifcfg,
 	gint gvrp, reorder_hdr;
 
 	value = svGetValueStr_cp (ifcfg, "VLAN_ID");
+	if (!value)
+		value = svGetValueStr_cp (ifcfg, "VID");
 	if (value) {
 		vlan_id = _nm_utils_ascii_str_to_int64 (value, 10, 0, 4095, -1);
 		if (vlan_id == -1) {

@@ -1209,6 +1209,9 @@ write_vlan_setting (NMConnection *connection, shvarFile *ifcfg, gboolean *wired,
 	svSetValueStr (ifcfg, "TYPE", TYPE_VLAN);
 	svSetValueStr (ifcfg, "PHYSDEV", nm_setting_vlan_get_parent (s_vlan));
 	svSetValueInt64 (ifcfg, "VLAN_ID", nm_setting_vlan_get_id (s_vlan));
+	/* Initscripts use VID instead of VLAN_ID */
+	svSetValueInt64 (ifcfg, "VID", nm_setting_vlan_get_id (s_vlan));
+
 	/*
 	 * Set the interface name for compatibility with initscripts,
 	 * but add a new variable to indicate the interface name is

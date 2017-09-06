@@ -1,7 +1,7 @@
 VLAN=yes
 TYPE=Vlan
 DEVICE=super-vlan
-VLAN_ID=44
+VID=44
 PHYSDEV=eth9
 REORDER_HDR=yes
 GVRP=no
