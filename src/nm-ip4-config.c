@@ -695,8 +695,6 @@ nm_ip4_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 			priv->has_gateway = TRUE;
 		}
 
-		if (route->table_coerced)
-			continue;
 		_add_route (self, plobj, NULL, NULL);
 	}
 
@@ -836,7 +834,7 @@ nm_ip4_config_commit (const NMIP4Config *self,
 	                                AF_INET,
 	                                ifindex,
 	                                routes,
-	                                nm_platform_lookup_predicate_routes_main,
+	                                NULL,
 	                                NULL,
 	                                NULL))
 		success = FALSE;
@@ -854,6 +852,10 @@ merge_route_attributes (NMIPRoute *s_route, NMPlatformIP4Route *r)
 	variant = nm_ip_route_get_attribute (s_route, name); \
 	if (variant && g_variant_is_of_type (variant, G_VARIANT_TYPE_ ## variant_type)) \
 		r->field = g_variant_get_ ## type (variant);
+
+	r->table_coerced = 254 /* RT_TABLE_MAIN */;
+	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_TABLE,          table_coerced,  UINT32,   uint32);
+	r->table_coerced = nm_platform_route_table_coerce (r->table_coerced);
 
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_TOS,            tos,            BYTE,     byte);
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_WINDOW,         window,         UINT32,   uint32);
@@ -3037,11 +3039,18 @@ out_addresses_cached:
 			                       "metric",
 			                       g_variant_new_uint32 (route->metric));
 
+			if (route->table_coerced) {
+				g_variant_builder_add (&route_builder, "{sv}",
+				                       "table",
+				                       g_variant_new_uint32 (nm_platform_route_table_coerce (route->table_coerced)));
+			}
+
 			g_variant_builder_add (&builder_data, "a{sv}", &route_builder);
 
 			/* legacy versions of nm_ip4_route_set_prefix() in libnm-util assert that the
 			 * plen is positive. Skip the default routes not to break older clients. */
-			if (!NM_PLATFORM_IP_ROUTE_IS_DEFAULT (route)) {
+			if (   !route->table_coerced
+			    && !NM_PLATFORM_IP_ROUTE_IS_DEFAULT (route)) {
 				const guint32 dbus_route[4] = {
 				    route->network,
 				    route->plen,
